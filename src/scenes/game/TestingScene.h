@@ -14,15 +14,10 @@ class TestingScene : public Scene {
         void onEnter() override {
             Scene::onEnter();
 
-            registerComponent<Sprite>();
-
             Entity player = createEntity();
             addComponent(player, Position { 100.0f, 200.0f });
             addComponent(player, Velocity { 200.0f, 0.0f });
-            addComponent(player, Sprite { TextureManager::GetInstance()->LoadTexture("circle-128.png") });
-
-            assignEntityToSystem<MovementSystem>(player);
-            assignEntityToSystem<RenderSystem>(player);
+            addComponent(player, Sprite { TextureManager::getInstance()->loadTexture("circle-128.png") });
         }
 
         void handleEvent(const SDL_Event& event) override {

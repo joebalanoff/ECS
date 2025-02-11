@@ -1,24 +1,24 @@
 #pragma once
 
-#include "ecs/ECS.h"
+#include "ecs/System.h"
 #include "ecs/components/Position.h"
 #include "ecs/components/Velocity.h"
 
-#include <iostream>
-
 class MovementSystem : public System {
     public:
-        MovementSystem(ComponentManager& compMgr) : componentManager(compMgr) {}
+        using System::System;
 
         void update(float deltaTime) override {
-            for(auto entity : entities) {
-                Position& pos = componentManager.GetComponent<Position>(entity);
-                Velocity& vel = componentManager.GetComponent<Velocity>(entity);
-                pos.x += vel.vx * deltaTime;
-                pos.y += vel.vy * deltaTime;
+            for(Entity entity : entities) {
+                auto* position = componentManager->getComponent<Position>(entity);
+                auto* velocity = componentManager->getComponent<Velocity>(entity);
+
+                if(position && velocity) {
+                    position->x += velocity->vx * deltaTime;
+                    position->y += velocity->vy * deltaTime;
+                }
             }
         }
 
-    private:
-        ComponentManager& componentManager;
+        void render(SDL_Renderer* renderer) override {}
 };

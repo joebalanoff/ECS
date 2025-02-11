@@ -1,20 +1,21 @@
 #pragma once
 
 #include "Signature.h"
-#include <vector>
-#include <queue>
+#include <unordered_set>
 
 class EntityManager {
-    public:
-        EntityManager();
-
-        Entity CreateEntity();
-        void DestroyEntity(Entity entity);
-
-        void SetSignature(Entity entity, Signature signature);
-        Signature GetSignature(Entity entity);
     private:
-        std::queue<Entity> availableEntities;
-        std::vector<Signature> entitySignatures;
-        std::size_t livingEntityCount = 0;
+        uint32_t nextEntity = 0;
+        std::unordered_set<Entity> activeEntities;
+
+    public:
+        Entity createEntity() {
+            Entity entity = nextEntity++;
+            activeEntities.insert(entity);
+            return entity;
+        }
+
+        void destroyEntity(Entity entity) {
+            activeEntities.erase(entity);
+        }
 };

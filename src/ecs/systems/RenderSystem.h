@@ -1,7 +1,6 @@
 #pragma once
 
-#include "ecs/ECS.h"
-
+#include "ecs/System.h"
 #include "ecs/components/Sprite.h"
 #include "ecs/components/Position.h"
 
@@ -9,16 +8,18 @@
 
 class RenderSystem : public System {
     public:
-        RenderSystem(ComponentManager& compMgr) : componentManager(compMgr) {} 
+        using System::System;
+
+        void update(float deltaTime) override {}
 
         void render(SDL_Renderer* renderer) override {
-            for(auto entity : entities) {
-                auto& sprite = componentManager.GetComponent<Sprite>(entity);
-                auto& position = componentManager.GetComponent<Position>(entity);
-
-                TextureManager::GetInstance()->DrawSprite(sprite.texture, position.x, position.y);
+            for(Entity entity : entities) {
+                auto* position = componentManager->getComponent<Position>(entity);
+                auto* sprite = componentManager->getComponent<Sprite>(entity);
+                
+                if(position && sprite && sprite->texture) {
+                    TextureManager::getInstance(renderer)->drawSprite(sprite->texture, position->x, position->y);
+                }
             }
         }
-    private:
-        ComponentManager& componentManager;
 };

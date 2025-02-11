@@ -5,7 +5,7 @@ TextureManager* TextureManager::instance = nullptr;
 
 TextureManager::TextureManager(SDL_Renderer* renderer) : renderer(renderer) {}
 
-TextureManager* TextureManager::GetInstance(SDL_Renderer* renderer) {
+TextureManager* TextureManager::getInstance(SDL_Renderer* renderer) {
     if(!instance) {
         if(!renderer) {
             return nullptr;
@@ -15,7 +15,7 @@ TextureManager* TextureManager::GetInstance(SDL_Renderer* renderer) {
     return instance;
 }
 
-SDL_Texture* TextureManager::LoadTexture(const std::string& file) {
+SDL_Texture* TextureManager::loadTexture(const std::string& file) {
     std::string filePath = "../assets/" + file; 
     if(textureMap.find(filePath) != textureMap.end()) {
         return textureMap[filePath];
@@ -39,7 +39,7 @@ SDL_Texture* TextureManager::LoadTexture(const std::string& file) {
     return texture;
 }
 
-void TextureManager::DrawTexture(const std::string& id, int x, int y, int w, int h) {
+void TextureManager::drawTexture(const std::string& id, int x, int y, int w, int h) {
     std::string lookUp = "../assets/" + id;
     if(textureMap.find(lookUp) == textureMap.end()) return;
 
@@ -47,7 +47,7 @@ void TextureManager::DrawTexture(const std::string& id, int x, int y, int w, int
     SDL_RenderCopy(renderer, textureMap[lookUp], nullptr, &destRect);
 }
 
-void TextureManager::DrawSprite(SDL_Texture* texture, int x, int y) {
+void TextureManager::drawSprite(SDL_Texture* texture, int x, int y) {
     if(!texture) {
         std::cerr << "DrawSprite: Texture is null!" << std::endl;
         return;
@@ -56,10 +56,10 @@ void TextureManager::DrawSprite(SDL_Texture* texture, int x, int y) {
     int width, height;
     SDL_QueryTexture(texture, nullptr, nullptr, &width, &height);
 
-    this->DrawSprite(texture, x, y, width, height);
+    this->drawSprite(texture, x, y, width, height);
 }
 
-void TextureManager::DrawSprite(SDL_Texture* texture, int x, int y, int w, int h) {
+void TextureManager::drawSprite(SDL_Texture* texture, int x, int y, int w, int h) {
     if(!texture) {
         std::cerr << "DrawSprite: Texture is null!" << std::endl;
         return;
@@ -69,7 +69,7 @@ void TextureManager::DrawSprite(SDL_Texture* texture, int x, int y, int w, int h
     SDL_RenderCopy(renderer, texture, nullptr, &destRect);
 }
 
-void TextureManager::Cleanup(){
+void TextureManager::cleanup(){
     for(auto& pair : textureMap) {
         SDL_DestroyTexture(pair.second);
     }
@@ -77,6 +77,6 @@ void TextureManager::Cleanup(){
 }
 
 TextureManager::~TextureManager() {
-    Cleanup();
+    cleanup();
     instance = nullptr;
 }

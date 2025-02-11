@@ -35,7 +35,7 @@ bool Application::initialize(const char* title, int width, int height) {
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if(!renderer) return false;
 
-    TextureManager::GetInstance(renderer);
+    TextureManager::getInstance(renderer);
 
     sceneManager.pushScene(std::make_unique<TestingScene>(renderer));
 
@@ -98,7 +98,7 @@ void Application::shutdown() {
         SDL_DestroyWindow(window);
         window = nullptr;
     }
-    TextureManager::GetInstance()->Cleanup();
+    TextureManager::getInstance()->cleanup();
     IMG_Quit();
     SDL_Quit();
 }

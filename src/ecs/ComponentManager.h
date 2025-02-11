@@ -1,96 +1,77 @@
 #pragma once
 
-#include "Signature.h"
+#include <typeindex>
 #include <unordered_map>
 #include <memory>
-#include <cassert>
+#include <vector>
+
+#include "Signature.h"
 
 class IComponentArray {
     public:
         virtual ~IComponentArray() = default;
-        virtual void EntityDestroyed(Entity entity) = 0;
 };
 
 template<typename T>
 class ComponentArray : public IComponentArray {
+    private: 
+        std::unordered_map<Entity, T> componentData;
+        
     public:
-        void InsertData(Entity entity, T component) {
-            assert(entityToIndexMap.find(entity) == entityToIndexMap.end() && "Component added to same entity more than once.");
-            size_t newIndex = size;
-            entityToIndexMap[entity] = newIndex;
-            indexToEntityMap[newIndex] = entity;
-            componentArray[newIndex] = component;
-            size++;
+        void insert(Entity entity, T component) {
+            componentData[entity] = component;
         }
 
-        void RemoveData(Entity entity) {
-            assert(entityToIndexMap.find(entity) != entityToIndexMap.end() && "Removing non-existent component.");
-            size_t indexOfRemovedEntity = entityToIndexMap[entity];
-            size_t indexOfLastElement = size - 1;
-            componentArray[indexOfRemovedEntity] = componentArray[indexOfLastElement];
-
-            Entity entityOfLastElement = indexToEntityMap[indexOfLastElement];
-            entityToIndexMap[entityOfLastElement] = indexOfRemovedEntity;
-            indexToEntityMap[indexOfRemovedEntity] = entityOfLastElement;
-
-            entityToIndexMap.erase(entity);
-            indexToEntityMap.erase(indexOfLastElement);
-            size--;
+        void remove(Entity entity) {
+            componentData.erase(entity);
         }
 
-        T& GetData(Entity entity) {
-            assert(entityToIndexMap.find(entity) != entityToIndexMap.end() && "Retrieving non-existent component.");
-            return componentArray[entityToIndexMap[entity]];
+        T* getComponent(Entity entity) {
+            if(componentData.find(entity) != componentData.end()) {
+                return &componentData[entity];
+            }
+            return nullptr;
         }
-
-        void EntityDestroyed(Entity entity) override {
-            if(entityToIndexMap.find(entity) != entityToIndexMap.end())
-                RemoveData(entity);
-        }
-    
-    private:
-        std::array<T, 1000> componentArray{};
-        std::unordered_map<Entity, size_t> entityToIndexMap;
-        std::unordered_map<size_t, Entity> indexToEntityMap;
-        size_t size = 0;
 };
 
 class ComponentManager {
+    private:
+        std::unordered_map<std::type_index, std::unique_ptr<IComponentArray>> componentArrays;
+
     public:
         template<typename T>
-        void RegisterComponent() {
-            const char* typeName = typeid(T).name();
-            componentArrays[typeName] = std::make_shared<ComponentArray<T>>();
+        void registerComponent() {
+            componentArrays[typeid(T)] = std::make_unique<ComponentArray<T>>();
         }
 
         template<typename T>
-        void AddComponent(Entity entity, T component) {
-            GetComponentArray<T>()->InsertData(entity, component);
+        void addComponent(Entity entity, T component) {
+            getComponentArray<T>()->insert(entity, component);
         }
 
         template<typename T>
-        void RemoveComponent(Entity entity) {
-            GetComponentArray<T>()->RemoveData(entity);
+        void removeComponent(Entity entity) {
+            getComponentArray<T>()->remove(entity);
         }
 
         template<typename T>
-        T& GetComponent(Entity entity) {
-            return GetComponentArray<T>()->GetData(entity);    
+        T* getComponent(Entity entity) {
+            return getComponentArray<T>()->getComponent(entity);
         }
 
-        void EntityDestroyed(Entity entity) {
-            for(auto const& pair : componentArrays) {
-                auto const& componentArray = pair.second;
-                componentArray->EntityDestroyed(entity);
-            }
+        bool hasComponent(Entity entity, std::type_index componentType) {
+            auto it = componentArrays.find(componentType);
+            if(it == componentArrays.end()) return false;
+
+            IComponentArray* baseArray = it->second.get();
+            auto* componentArray = static_cast<ComponentArray<std::remove_pointer_t<decltype(baseArray)>>*>(baseArray);
+
+            return componentArray->getComponent(entity) != nullptr;
         }
 
     private:
-        std::unordered_map<const char*, std::shared_ptr<IComponentArray>> componentArrays;
-
         template<typename T>
-        std::shared_ptr<ComponentArray<T>> GetComponentArray() {
-            const char* typeName = typeid(T).name();
-            return std::static_pointer_cast<ComponentArray<T>>(componentArrays[typeName]);
+        ComponentArray<T>* getComponentArray() {
+            return static_cast<ComponentArray<T>*>(componentArrays[typeid(T)].get());
         }
 };

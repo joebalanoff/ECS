@@ -14,12 +14,13 @@ class Scene {
         SDL_Renderer* renderer;
         std::unique_ptr<EntityManager> entityManager;
         std::unique_ptr<ComponentManager> componentManager;
-        std::vector<std::unique_ptr<System>> systems;
+        std::unique_ptr<SystemManager> systemManager;
 
     public:
         Scene(SDL_Renderer* renderer) : renderer(renderer) {
             entityManager = std::make_unique<EntityManager>();
             componentManager = std::make_unique<ComponentManager>();
+            systemManager = std::make_unique<SystemManager>(componentManager.get());
         }
 
         virtual ~Scene() = default;
@@ -27,66 +28,36 @@ class Scene {
         virtual void handleEvent(const SDL_Event& event) = 0;
 
         virtual void onEnter() {
-            componentManager->RegisterComponent<Position>();
-            componentManager->RegisterComponent<Velocity>();
-            componentManager->RegisterComponent<Sprite>();
+            componentManager->registerComponent<Position>();
+            componentManager->registerComponent<Velocity>();
+            componentManager->registerComponent<Sprite>();
 
-            addSystem<MovementSystem>();
-            addSystem<RenderSystem>();
+            systemManager->registerSystem<MovementSystem>({typeid(Position), typeid(Velocity)});
+            systemManager->registerSystem<RenderSystem>({typeid(Position), typeid(Sprite)});
         }
 
         virtual void onExit() {}
 
         virtual void update(float deltaTime) {
-            for(auto& system : systems) {
-                system->update(deltaTime);
-            }
+            systemManager->update(deltaTime);
         }
 
         virtual void render(){
-            for(auto& system : systems) {
-                system->render(renderer);
-            }
+            systemManager->render(renderer);    
         }
 
-        template<typename T, typename... Args>
-        void addSystem(Args&&... args) {
-            systems.push_back(std::make_unique<T>(*componentManager, std::forward<Args>(args)...));
-        }
-
-        template<typename T>
-        void assignEntityToSystem(Entity entity) {
-            for(auto& system : systems) {
-                for(auto& system : systems) {
-                    if(auto castedSystem = dynamic_cast<T*>(system.get())) {
-                        castedSystem->entities.insert(entity);
-                        return;
-                    }
-                }
-            }
-        }
-
-        template<typename T>
-        T* getSystem() {
-            for(auto& system : systems) {
-                if(auto castedSystem = dynamic_cast<T*>(system.get())) {
-                    return castedSystem;
-                }
-            }
-            return nullptr;
-        }
-        
         Entity createEntity() {
-            return entityManager->CreateEntity();
+            return entityManager->createEntity();
         }
 
         template<typename T>
         void registerComponent() {
-            componentManager->RegisterComponent<T>();
+            componentManager->registerComponent<T>();
         }
 
         template<typename T>
         void addComponent(Entity entity, T component) {
-            componentManager->AddComponent(entity, component);
+            componentManager->addComponent(entity, component);
+            systemManager->checkSystemRequirements<T>(entity);        
         }
 };

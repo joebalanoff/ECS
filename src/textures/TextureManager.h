@@ -13,11 +13,11 @@ class TextureManager {
 
         TextureManager(SDL_Renderer* renderer);
     public:
-        static TextureManager* GetInstance(SDL_Renderer* renderer = nullptr);
-        SDL_Texture* LoadTexture(const std::string& file);
-        void DrawTexture(const std::string& id, int x, int y, int w, int h);
-        void DrawSprite(SDL_Texture* texture, int x, int y);
-        void DrawSprite(SDL_Texture* texture, int x, int y, int w, int h);
-        void Cleanup();
+        static TextureManager* getInstance(SDL_Renderer* renderer = nullptr);
+        SDL_Texture* loadTexture(const std::string& file);
+        void drawTexture(const std::string& id, int x, int y, int w, int h);
+        void drawSprite(SDL_Texture* texture, int x, int y);
+        void drawSprite(SDL_Texture* texture, int x, int y, int w, int h);
+        void cleanup();
         ~TextureManager();
 };
