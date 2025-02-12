@@ -5,8 +5,6 @@
 #include <memory>
 #include "System.h"
 
-#include <iostream>
-
 class SystemManager {
     private:
         std::unordered_map<std::type_index, std::shared_ptr<System>> systems;

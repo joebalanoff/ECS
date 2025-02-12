@@ -28,9 +28,9 @@ class Scene {
         virtual void handleEvent(const SDL_Event& event) = 0;
 
         virtual void onEnter() {
-            componentManager->registerComponent<Position>();
-            componentManager->registerComponent<Velocity>();
-            componentManager->registerComponent<Sprite>();
+            registerComponent<Position>();
+            registerComponent<Velocity>();
+            registerComponent<Sprite>();
 
             systemManager->registerSystem<MovementSystem>({typeid(Position), typeid(Velocity)});
             systemManager->registerSystem<RenderSystem>({typeid(Position), typeid(Sprite)});
@@ -53,6 +53,11 @@ class Scene {
         template<typename T>
         void registerComponent() {
             componentManager->registerComponent<T>();
+        }
+
+        template<typename T>
+        void registerSystem(std::unordered_set<std::type_index> requiredComponents) {
+            systemManager->registerSystem<T>(requiredComponents);
         }
 
         template<typename T>
