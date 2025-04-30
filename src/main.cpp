@@ -2,7 +2,7 @@
 
 int main() {
     Application app;
-    if(app.initialize("Metroidvania", 800, 600)) {
+    if(app.initialize("ECS", 800, 600)) {
         app.run();
     }
     return 0;
