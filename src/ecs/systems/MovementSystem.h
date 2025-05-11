@@ -4,6 +4,8 @@
 #include "ecs/components/Position.h"
 #include "ecs/components/Velocity.h"
 
+#include "core/InputManager.h"
+
 class MovementSystem : public System {
     public:
         using System::System;
@@ -14,6 +16,8 @@ class MovementSystem : public System {
                 auto* velocity = componentManager->getComponent<Velocity>(entity);
 
                 if(position && velocity) {
+                    velocity->vx = InputManager::isKeyHeld(SDLK_d) ? 100 : 0;
+
                     position->x += velocity->vx * deltaTime;
                     position->y += velocity->vy * deltaTime;
                 }

@@ -1,4 +1,6 @@
 #include "Application.h"
+#include "InputManager.h"
+
 #include "textures/TextureManager.h"
 
 #include "../scenes/game/TestingScene.h"
@@ -67,11 +69,14 @@ void Application::run() {
 }
 
 void Application::processInput() {
+    InputManager::resetForNewFrame();
+
     SDL_Event event;
     while(SDL_PollEvent(&event)) {
         if(event.type == SDL_QUIT) {
             isRunning = false;
         }
+        InputManager::update(event);
         sceneManager.handleEvent(event);
     }
 }
